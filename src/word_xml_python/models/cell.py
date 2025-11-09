@@ -26,13 +26,15 @@ class CellInfo:
     col_span: int = 1  # 列合并数
     row_span: int = 1  # 行合并数
     body: List[CellPBody] = field(default_factory=list)
+    is_empty_cell: bool = False
 
     def __repr__(self) -> str:
         return (
             f"CellInfo(key={self.key}, "
             f"col_span={self.col_span}, "
-            f"row_span={self.row_span})"
+            f"row_span={self.row_span}, "
             f"body={self.body}"
+            f"is_empty_cell={self.is_empty_cell}"
         )
 
     def to_dict(self) -> Dict[str, Any]:

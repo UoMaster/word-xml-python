@@ -82,8 +82,12 @@ class CellExtractor:
             key=key,
             col_span=col_span,
             row_span=1,
-            body=cell_body
+            body=cell_body,
+            is_empty_cell=False
         )
+        
+        if len(cell_body) ==1 or len(cell_body[0].rList) == 0:
+            cell_info.is_empty_cell = True
         
         # 处理行合并
         self._process_row_merge(tc_pr, cell_index, cell_info)
