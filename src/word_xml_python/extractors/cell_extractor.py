@@ -88,11 +88,28 @@ class CellExtractor:
         
         if len(cell_body) ==1 or len(cell_body[0].rList) == 0:
             cell_info.is_empty_cell = True
+
+
+        left_cell_key, top_cell_key = self._get_adjoining_cell_key(row_index, cell_index)
+        cell_info.left_cell_key = left_cell_key
+        cell_info.top_cell_key = top_cell_key
         
         # 处理行合并
         self._process_row_merge(tc_pr, cell_index, cell_info)
         
         return cell_info
+
+    def _get_adjoining_cell_key(self, row_index: int, cell_index: int) -> (str | None, str | None):
+        """
+        获取相邻的单元格的key
+
+        Returns:
+            (左边相邻的单元格的key, 上边相邻的单元格的key)
+        """
+
+        left_cell_key = None if cell_index == 0 else f"{row_index}-{cell_index - 1}"
+        top_cell_key = None if row_index == 0 else f"{row_index - 1}-{cell_index}"
+        return (left_cell_key, top_cell_key)
     
     def _clean_tc_pr(self, tc_pr: _Element) -> None:
         """

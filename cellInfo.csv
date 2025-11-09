@@ -1,9 +1,9 @@
-key,col_span,row_span,body,is_empty_cell
-0-0,2,1,"[{'pStyle': {}, 'rList': [{'rStyle': '', 'body': '我吃'}, {'rStyle': '0000FF', 'body': '饭了你吃'}, {'rStyle': '', 'body': '发了吗'}]}, {'pStyle': {}, 'rList': [{'rStyle': '', 'body': '我没吃'}, {'rStyle': 'F2BA02', 'body': '呢哈'}, {'rStyle': '', 'body': '哈哈'}]}]",False
-0-1,1,1,"[{'pStyle': {}, 'rList': [{'rStyle': '', 'body': '1333'}]}]",True
-1-0,1,1,"[{'pStyle': {'algin': 'right'}, 'rList': [{'rStyle': '', 'body': '1123123'}]}]",True
-1-1,1,2,"[{'pStyle': {}, 'rList': []}]",True
-1-2,1,1,"[{'pStyle': {}, 'rList': []}]",True
-2-0,1,1,"[{'pStyle': {}, 'rList': []}]",True
-2-1,1,1,"[{'pStyle': {}, 'rList': []}]",True
-2-2,1,1,"[{'pStyle': {}, 'rList': []}]",True
+key,col_span,row_span,body,is_empty_cell,left_cell_key,top_cell_key
+0-0,2,1,"[{'pStyle': {}, 'rList': [{'rStyle': '', 'body': '我吃'}, {'rStyle': '0000FF', 'body': '饭了你吃'}, {'rStyle': '', 'body': '发了吗'}]}, {'pStyle': {}, 'rList': [{'rStyle': '', 'body': '我没吃'}, {'rStyle': 'F2BA02', 'body': '呢哈'}, {'rStyle': '', 'body': '哈哈'}]}]",False,,
+0-1,1,1,"[{'pStyle': {}, 'rList': [{'rStyle': '', 'body': '1333'}]}]",True,0-0,
+1-0,1,1,"[{'pStyle': {'algin': 'right'}, 'rList': [{'rStyle': '', 'body': '1123123'}]}]",True,,0-0
+1-1,1,2,"[{'pStyle': {}, 'rList': []}]",True,1-0,0-1
+1-2,1,1,"[{'pStyle': {}, 'rList': []}]",True,1-1,0-2
+2-0,1,1,"[{'pStyle': {}, 'rList': []}]",True,,1-0
+2-1,1,1,"[{'pStyle': {}, 'rList': []}]",True,2-0,1-1
+2-2,1,1,"[{'pStyle': {}, 'rList': []}]",True,2-1,1-2

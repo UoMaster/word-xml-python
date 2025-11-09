@@ -27,6 +27,8 @@ class CellInfo:
     row_span: int = 1  # 行合并数
     body: List[CellPBody] = field(default_factory=list)
     is_empty_cell: bool = False
+    left_cell_key: str | None = None
+    top_cell_key: str | None = None
 
     def __repr__(self) -> str:
         return (
@@ -35,6 +37,8 @@ class CellInfo:
             f"row_span={self.row_span}, "
             f"body={self.body}"
             f"is_empty_cell={self.is_empty_cell}"
+            f"left_cell_key={self.left_cell_key}"
+            f"top_cell_key={self.top_cell_key}"
         )
 
     def to_dict(self) -> Dict[str, Any]:
