@@ -64,6 +64,8 @@ class TableSplitter:
             # 匹配结果
             success_num = 0
 
+            GET_LEN = 2
+
             if t_len == 1:
                 h_len = b_len
                 while 1:
@@ -83,7 +85,7 @@ class TableSplitter:
                     self.currentTblElement.append(deepcopy(t_el))
                     self.load_new_template_tbl()
                     # 只提取 2 行
-                    GET_LEN = 2
+                
                     for _ in range(GET_LEN):
                         top_point += 1
                         # 边界检查
@@ -96,6 +98,31 @@ class TableSplitter:
                     self.load_new_template_tbl("repeat")
                     top_point = bottom_point + 1
                     bottom_point = top_point + 1
+            elif self.is_tr_empty(b_el) and b_len == t_len:
+              success_num += 1
+              while 1:
+                bottom_point += 1
+                b_el = tr_elements[bottom_point]
+                b_len = len(b_el.findall(".//w:tc", self.namespaces))
+                if not self.is_tr_empty(b_el) or b_len != t_len:
+                  bottom_point -= 1
+                  break
+                else:
+                  success_num += 1
+              if success_num >= 2:
+                self.load_new_template_tbl()
+                for _ in range(GET_LEN):
+                 
+                  t_el = tr_elements[top_point]
+                  self.currentTblElement.append(deepcopy(t_el))
+                  top_point += 1
+                  # 边界检查
+                  if top_point >= all_tr_len:
+                    break
+                self.load_new_template_tbl("repeat")
+                top_point = bottom_point + 1
+                bottom_point = top_point + 1
+            
             else:
                 if t_len == h_len:
                     self.currentTblElement.append(deepcopy(t_el))
