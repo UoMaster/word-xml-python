@@ -1,9 +1,19 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from tkinter import W
 from lxml.etree import _Element
 from typing import Dict, List
-from ..models import XmlMeta
+from ..models import CellInfo, TableInfo, XmlMeta
 from lxml import etree
+
+
+@dataclass
+class TableSplitResult:
+    table: _Element
+    table_type: str
+    table_cell_csv_str: str = ""
+    table_info: TableInfo | None = None
+    table_cell_list: List[CellInfo] | None = None
 
 
 class TableSplitter:
@@ -14,7 +24,7 @@ class TableSplitter:
     xmlMetaList: List[XmlMeta]
     ns: Dict[str, str]
     currentTblElement: _Element
-    tables = List[_Element]
+    tables: List[TableSplitResult]
 
     def __init__(self, tblElement: _Element, namespaces: Dict[str, str]):
         self.tblElement = tblElement
@@ -41,7 +51,7 @@ class TableSplitter:
                 self.currentTblElement.append(deepcopy(tr_elements[top_point]))
                 self.load_new_template_tbl()
                 break
-            
+
             # 元素
             t_el = tr_elements[top_point]
             b_el = tr_elements[bottom_point]
@@ -57,35 +67,35 @@ class TableSplitter:
             if t_len == 1:
                 h_len = b_len
                 while 1:
-                  bottom_point += 1
-                  # 边界检查
-                  if bottom_point >= all_tr_len:
-                    bottom_point = all_tr_len - 1
-                    break
-                  b_el = tr_elements[bottom_point]
-                  b_len = len(b_el.findall(".//w:tc", self.namespaces))
-                  if b_len == h_len and self.is_tr_empty(b_el):
-                    success_num += 1
-                  else:
-                    bottom_point -= 1
-                    break
-                if success_num >= 2:
-                  self.currentTblElement.append(deepcopy(t_el))
-                  self.load_new_template_tbl()
-                  # 只提取 2 行
-                  GET_LEN = 2
-                  for _ in range(GET_LEN):
-                    top_point += 1
+                    bottom_point += 1
                     # 边界检查
-                    if top_point >= all_tr_len:
-                      break
-                    t_el = tr_elements[top_point]
-                    t_len = len(t_el.findall(".//w:tc", self.namespaces))
+                    if bottom_point >= all_tr_len:
+                        bottom_point = all_tr_len - 1
+                        break
+                    b_el = tr_elements[bottom_point]
+                    b_len = len(b_el.findall(".//w:tc", self.namespaces))
+                    if b_len == h_len and self.is_tr_empty(b_el):
+                        success_num += 1
+                    else:
+                        bottom_point -= 1
+                        break
+                if success_num >= 2:
                     self.currentTblElement.append(deepcopy(t_el))
+                    self.load_new_template_tbl()
+                    # 只提取 2 行
+                    GET_LEN = 2
+                    for _ in range(GET_LEN):
+                        top_point += 1
+                        # 边界检查
+                        if top_point >= all_tr_len:
+                            break
+                        t_el = tr_elements[top_point]
+                        t_len = len(t_el.findall(".//w:tc", self.namespaces))
+                        self.currentTblElement.append(deepcopy(t_el))
 
-                  self.load_new_template_tbl()
-                  top_point = bottom_point + 1
-                  bottom_point = top_point + 1
+                    self.load_new_template_tbl("repeat")
+                    top_point = bottom_point + 1
+                    bottom_point = top_point + 1
             else:
                 if t_len == h_len:
                     self.currentTblElement.append(deepcopy(t_el))
@@ -96,9 +106,9 @@ class TableSplitter:
                         self.currentTblElement.append(deepcopy(t_el))
                         top_point += 1
                         bottom_point += 1
-                       
-    def load_new_template_tbl(self):
-        self.tables.append(deepcopy(self.currentTblElement))
+
+    def load_new_template_tbl(self, type: str = "normal"):
+        self.tables.append(TableSplitResult(deepcopy(self.currentTblElement), type))
         self.currentTblElement = self.copyTemplateTbl()
 
     def is_tr_empty(self, tr_element: _Element) -> bool:
@@ -146,8 +156,8 @@ class TableSplitter:
 
         return newTblElement
 
-    def getTables(self) -> List[_Element]:
-        return self.tables
+    def getTables(self) -> List[TableSplitResult]:
+        return deepcopy(self.tables)
 
 
 __all__ = ["TableSplitter"]

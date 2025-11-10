@@ -1,0 +1,14 @@
+# API相关依赖
+# 安装命令: pip install -r requirements-api.txt
+
+# Web框架
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+
+# HTTP客户端（用于测试）
+requests>=2.31.0
+
+# 生产环境服务器（可选）
+gunicorn>=21.2.0
+

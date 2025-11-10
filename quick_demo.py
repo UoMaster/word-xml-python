@@ -1,6 +1,6 @@
 """快速示例 - 演示如何使用word_xml_python库"""
 
-from word_xml_python import process_word_table, export_to_csv
+from word_xml_python import process_word_table, export_to_csv, export_to_str
 
 # Word XML文档路径
 FILE_PATH = "/Users/wuhongbin/qilin/project/word-learn/word/word/document.xml"
@@ -12,13 +12,17 @@ def main():
     try:
         # 处理表格
         print(f"\n正在处理文件: {FILE_PATH}")
-        table_info, cell_meta_list = process_word_table(FILE_PATH)
+        tables = process_word_table(FILE_PATH)
         
+        print(tables[0].table_cell_csv_str)
         # 导出到CSV
-        for i, cell_list in enumerate(cell_meta_list):
-          output_file = f"cellInfo_{i}.csv"
-          export_to_csv(cell_list, output_file)
-          i += 1
+        for idx, table_meta in enumerate(tables):
+          output_file = f"cellInfo_{idx}.csv"
+          if table_meta.table_cell_list:
+            export_to_csv(table_meta.table_cell_list, output_file)
+            print(f"✓ 已导出表格 {idx} ({table_meta.table_type}) 到: {output_file}")
+          else:
+            print(f"✗ 表格 {idx} 没有单元格数据")
     
         
     except FileNotFoundError:
