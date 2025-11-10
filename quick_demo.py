@@ -12,12 +12,13 @@ def main():
     try:
         # 处理表格
         print(f"\n正在处理文件: {FILE_PATH}")
-        table_info, cell_list = process_word_table(FILE_PATH)
+        table_info, cell_meta_list = process_word_table(FILE_PATH)
         
         # 导出到CSV
-        output_file = "cellInfo.csv"
-      
-        export_to_csv(cell_list, output_file)
+        for i, cell_list in enumerate(cell_meta_list):
+          output_file = f"cellInfo_{i}.csv"
+          export_to_csv(cell_list, output_file)
+          i += 1
     
         
     except FileNotFoundError:
