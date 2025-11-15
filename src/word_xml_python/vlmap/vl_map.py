@@ -27,6 +27,7 @@ MAP_AI_TIP = """
 """
 
 TABLE_ROW_SEPARATOR_LINE =  70
+
 class Vlmap:
   table_xml_string: str 
   tree: etree.Element

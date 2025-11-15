@@ -33,6 +33,9 @@ class MapVerifier:
     # 首先确认trs的行数是否与叠加的verifier_meta的rows的行数一致
     self._verify_trs_len(error_infos)
     
+    # 遍历metas，逐行验证
+    for meta in self.metas:
+      self._verify_meta_rows(meta, error_infos)
     return error_infos
 
   
@@ -47,3 +50,29 @@ class MapVerifier:
         )
       )
 
+  def _verify_meta_rows(self, meta: VerifierMeta, error_infos: List[ErrorInfo]):
+    type = meta.type
+    if type == "Form":
+      self._verify_form_type(meta, error_infos)
+    elif type == "RepeatTable":
+      self._verify_repeat_table_type(meta, error_infos)
+    elif type == "Left_RepeatTable":
+      self._verify_left_repeat_table_type(meta, error_infos)
+    elif type == "Right_RepeatTable":
+      self._verify_right_repeat_table_type(meta, error_infos)
+  
+  # 验证普通表单类型
+  def _verify_form_type(self, meta: VerifierMeta, error_infos: List[ErrorInfo]):
+    pass
+
+  # 验证重复表类型
+  def _verify_repeat_table_type(self, meta: VerifierMeta, error_infos: List[ErrorInfo]):
+    pass
+
+  # 验证左重复表类型
+  def _verify_left_repeat_table_type(self, meta: VerifierMeta, error_infos: List[ErrorInfo]):
+    pass
+
+  # 验证右重复表类型
+  def _verify_right_repeat_table_type(self, meta: VerifierMeta, error_infos: List[ErrorInfo]):
+    pass
