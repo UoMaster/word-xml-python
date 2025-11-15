@@ -10,6 +10,7 @@ from .parser import WordXMLParser
 from .extractors import TableExtractor, CellExtractor
 from .exporters import CSVExporter
 from .split import TableSplitter, TableSplitResult
+from .vlmap import Vlmap, MapVerifier
 
 __version__ = "0.1.0"
 __all__ = [
@@ -24,7 +25,9 @@ __all__ = [
     "process_word_table",
     "process_word_table_from_xml",
     "export_to_csv",
-    "export_to_str"
+    "export_to_str",
+    "Vlmap",
+    "MapVerifier"
 ]
 
 

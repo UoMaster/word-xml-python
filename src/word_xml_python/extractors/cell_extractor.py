@@ -33,23 +33,25 @@ class CellExtractor:
         cell_info_list: List[CellInfo] = []
         self.row_span_map = {}
         
-        # 获取所有行
         rows = table_element.findall(".//w:tr", self.namespaces)
         
         for row_index, row in enumerate(rows):
             cells = row.findall(".//w:tc", self.namespaces)
+            actual_col_index = 0
             
             for cell_index, cell in enumerate(cells):
-                cell_info = self._extract_cell(cell, row_index, cell_index)
+                cell_info = self._extract_cell(cell, row_index, cell_index, actual_col_index)
                 cell_info_list.append(cell_info)
+                actual_col_index += cell_info.col_span
         
         return cell_info_list
     
     def _extract_cell(
         self, 
-        cell_element: _Element, 
+        cell_element: _Element,
         row_index: int, 
-        cell_index: int
+        cell_index: int,
+        actual_col_index: int
     ) -> CellInfo:
         """
         提取单个单元格信息
@@ -57,7 +59,8 @@ class CellExtractor:
         Args:
             cell_element: 单元格XML元素
             row_index: 行索引
-            cell_index: 列索引
+            cell_index: tc元素索引
+            actual_col_index: 实际列位置
             
         Returns:
             单元格信息对象
@@ -94,8 +97,7 @@ class CellExtractor:
         cell_info.left_cell_key = left_cell_key
         cell_info.top_cell_key = top_cell_key
         
-        # 处理行合并
-        self._process_row_merge(tc_pr, cell_index, cell_info)
+        self._process_row_merge(tc_pr, actual_col_index, cell_info)
         
         return cell_info
 
@@ -146,7 +148,7 @@ class CellExtractor:
     def _process_row_merge(
         self, 
         tc_pr: _Element | None, 
-        cell_index: int,
+        actual_col_index: int,
         cell_info: CellInfo
     ) -> None:
         """
@@ -154,12 +156,11 @@ class CellExtractor:
         
         Args:
             tc_pr: tcPr元素
-            cell_index: 列索引
+            actual_col_index: 实际列位置
             cell_info: 单元格信息对象
         """
         if tc_pr is None:
-            # 没有tcPr，清除该列的行合并记录
-            self.row_span_map.pop(cell_index, None)
+            self.row_span_map.pop(actual_col_index, None)
             return
         
         v_merge = tc_pr.find("./w:vMerge", self.namespaces)
@@ -168,15 +169,12 @@ class CellExtractor:
             val = v_merge.get(f"{{{self.namespaces['w']}}}val", "continue")
             
             if val == "restart":
-                # 开始新的行合并
-                self.row_span_map[cell_index] = cell_info
+                self.row_span_map[actual_col_index] = cell_info
             elif val == "continue":
-                # 继续行合并
-                if cell_index in self.row_span_map:
-                    self.row_span_map[cell_index].row_span += 1
+                if actual_col_index in self.row_span_map:
+                    self.row_span_map[actual_col_index].row_span += 1
         else:
-            # 没有vMerge标签，清除该列的行合并记录
-            self.row_span_map.pop(cell_index, None)
+            self.row_span_map.pop(actual_col_index, None)
 
     def _extract_p_body(self, cell_element: _Element) -> List[CellPBody]:
         """
