@@ -2,6 +2,8 @@ from dataclasses import dataclass, asdict
 import json
 from typing import Dict, List
 from lxml import etree
+
+
 @dataclass
 class VerifierMeta:
   name: str
@@ -14,6 +16,9 @@ class ErrorInfo:
   source_meta: str
   error_msg: str
 
+"""
+当 AI 生成完成标准的 verifier_meta 后，需要通过这个类来验证生成的 verifier_meta 是否符合要求，这里验证的都是一些简单的结构问题，如果 AI 分析的正确，一定是可以通过这个类验证的。所以需要用反复调用这个类来验证生成的 verifier_meta 是否符合要求。
+"""
 class MapVerifier:
   metas: List[VerifierMeta] = []
   trs: List[etree._Element] = []
