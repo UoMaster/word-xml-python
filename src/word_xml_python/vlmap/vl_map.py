@@ -16,7 +16,7 @@ MAP_AI_TIP = """
 请返回 JSON（只返回JSON，无需解释）：
 [
   {
-    "name": "", // 区域名称
+    "name": "", // 区域名称Left_RepeatTable
     "rows": [], // int 的数组，表示区域行号 例如 [1, 2, 3]
     "type": "Form", // "Form" 或 "RepeatTable"
     "reason": "" // 原因描述
