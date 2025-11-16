@@ -10,6 +10,7 @@ class VerifierMeta:
   rows: List[int]
   type: str
   reason: str
+  split_after_column: int | None = None
 
 @dataclass
 class ErrorInfo:

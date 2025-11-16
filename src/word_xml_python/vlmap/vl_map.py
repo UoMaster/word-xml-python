@@ -6,7 +6,8 @@ MAP_AI_TIP = """
 
 判断依据：
 1. **重复表(RepeatTable)**：必须有明确的表头行，下方包含多行结构相同的空白行用于填写重复数据。典型特征是有列标题和多行数据行。
-2. **左右重复表(Left_RepeatTable/Right_RepeatTable)**：表格被垂直分割，一侧是标题，另一侧是重复表结构。
+2. **左重复表(Left_RepeatTable)**：表格被垂直分割，左侧是标题，右侧一侧是重复表结构。
+3. **右重复表(Right_RepeatTable)**：表格被垂直分割，左侧是一侧是重复表结构，右侧是标题。
 3. **普通表单(Form)**：其他所有不包含重复数据结构的区域，包括单行字段、跨行字段等。
 
 关键识别特征：
@@ -24,6 +25,16 @@ MAP_AI_TIP = """
 ]
 • rows 必须是连续的整数数组
 • type 只能是 "Form" 或 "RepeatTable" 或 "Left_RepeatTable" 或 "Right_RepeatTable"
+
+如果是 Left_RepeatTable 或 Right_RepeatTable，请明确指出切割点，从第几列开始切割：
+
+返回示例：
+{{
+  "type": "Left_RepeatTable",
+  "rows": [1, 2, 3, 4],
+  "split_after_column": 0,  // 在第0列后切开
+  "reason": "第0列是标题，第1-3列是重复表结构"
+}}
 """
 
 TABLE_ROW_SEPARATOR_LINE =  70

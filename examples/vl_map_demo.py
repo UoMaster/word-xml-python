@@ -36,7 +36,8 @@ def main():
     xml_bytes = open(
         "/Users/wuhongbin/qilin/project/word-learn/word/word/document.xml", "rb"
     ).read()
-    get_map_verifier(xml_bytes, MOKE_JSON)
+    # get_map_verifier(xml_bytes, MOKE_JSON)
+    print(get_vl_map(xml_bytes))
 
 
 def get_vl_map(xml_string: bytes) -> str:
@@ -56,7 +57,7 @@ def get_map_verifier(xml_string: bytes, json_string: str) -> MapVerifier:
     # 创建Vlmap对象
     trs = tree.find(".//w:tbl", rootnamespaces).findall(".//w:tr", rootnamespaces)
     map_verifier = MapVerifier(
-        verifier_meta=json.loads(json_string), trs=trs, namespaces=rootnamespaces
+        verifier_meta=json.loads(json_string), trs=trs, namespaces=rootnamespaces, 
     )
     print(map_verifier.verify())
 
