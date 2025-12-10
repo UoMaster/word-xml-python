@@ -12,7 +12,8 @@ dependencies = [
     "pandas (>=2.3.3,<3.0.0)",
     "fastapi (>=0.121.1,<0.122.0)",
     "uvicorn (>=0.38.0,<0.39.0)",
-    "pdf2docx (>=0.5.8,<0.6.0)"
+    "pdf2docx (>=0.5.8,<0.6.0)",
+    "pyperclip (>=1.11.0,<2.0.0)"
 ]
 
 [tool.poetry]

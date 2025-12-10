@@ -1,6 +1,9 @@
+import copy
 import json
+import os
 from word_xml_python import Vlmap, MapVerifier
 from lxml import etree
+import pyperclip
 
 MOKE_JSON = """
 [
@@ -36,8 +39,18 @@ def main():
     xml_bytes = open(
         "/Users/wuhongbin/Code/word-xml-python/word_meta/word/document.xml", "rb"
     ).read()
-    # get_map_verifier(xml_bytes, MOKE_JSON)
-    print(get_vl_map(xml_bytes))
+    # 读取环境变量
+    model = os.getenv("MODEL")
+    if model == "vl":
+        s = get_vl_map(xml_bytes)
+        print("vl_map:")
+        print(s)
+        pyperclip.copy(s)
+    elif  model == "vl_v":
+        # 读取同级目录的 json.txt 文件
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        json_string = open(os.path.join(script_dir, "json.txt"), "r").read()
+        get_map_verifier(xml_bytes, json_string)
 
 
 def get_vl_map(xml_string: bytes) -> str:
@@ -48,7 +61,7 @@ def get_vl_map(xml_string: bytes) -> str:
     # 创建Vlmap对象
     vlmap = Vlmap(etree.tostring(tree.find(".//w:tbl", rootnamespaces)))
     # 解析表格
-    return vlmap.parse()
+    return vlmap.parse_and_tip()
 
 
 def get_map_verifier(xml_string: bytes, json_string: str) -> MapVerifier:
@@ -59,7 +72,11 @@ def get_map_verifier(xml_string: bytes, json_string: str) -> MapVerifier:
     map_verifier = MapVerifier(
         verifier_meta=json.loads(json_string), trs=trs, namespaces=rootnamespaces, 
     )
-    print(map_verifier.verify())
+    errors = map_verifier.verify()
+    if errors:
+        print(json.dumps(errors, ensure_ascii=False))
+    else:
+        print("没有错误")
 
 
 if __name__ == "__main__":

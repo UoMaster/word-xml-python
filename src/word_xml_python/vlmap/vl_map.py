@@ -63,6 +63,11 @@ class Vlmap:
         for row_idx, tr in enumerate(trs):
             vl += self.print_table_row(tr, row_idx)
         return vl
+    
+    def parse_and_tip(self) -> str:
+        vl = self.parse()
+        return vl + "\n" + MAP_AI_TIP
+
 
     def _calculate_row_spans(self, trs: list[etree.Element]):
         col_merge_state = {}

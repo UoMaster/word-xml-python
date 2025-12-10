@@ -12,5 +12,8 @@ demo:
 extract:
 	$(PYTHON) $(EXAMPLES_DIR)/word_to_xml.py $(DOCX)
 
-vlmap:
-	$(PYTHON) $(EXAMPLES_DIR)/vl_map_demo.py
+vl:
+	export MODEL=vl; $(PYTHON) $(EXAMPLES_DIR)/vl/vl_map_demo.py
+
+vl_v:
+	export MODEL=vl_v; $(PYTHON) $(EXAMPLES_DIR)/vl/vl_map_demo.py
