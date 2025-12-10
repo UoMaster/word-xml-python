@@ -34,7 +34,7 @@ MOKE_JSON = """
 
 def main():
     xml_bytes = open(
-        "/Users/wuhongbin/qilin/project/word-learn/word/word/document.xml", "rb"
+        "/Users/wuhongbin/Code/word-xml-python/word_meta/word/document.xml", "rb"
     ).read()
     # get_map_verifier(xml_bytes, MOKE_JSON)
     print(get_vl_map(xml_bytes))
