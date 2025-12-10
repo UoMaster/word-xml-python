@@ -7,9 +7,9 @@ import pyperclip
 
 
 def main():
-    xml_bytes = open(
-        "/Users/wuhongbin/Code/word-xml-python/word_meta/word/document.xml", "rb"
-    ).read()
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    xml_path = os.getenv("XML_PATH", os.path.join(project_root, "word_meta/word/document.xml"))
+    xml_bytes = open(xml_path, "rb").read()
     # 读取环境变量
     model = os.getenv("MODEL")
     if model == "vl":
