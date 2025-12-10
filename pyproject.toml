@@ -23,6 +23,7 @@ packages = [{include = "word_xml_python", from = "src"}]
 [tool.poetry.group.dev.dependencies]
 types-lxml = "^2025.8.25"
 ruff = "^0.14.8"
+pre-commit = "^4.5.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 from word_xml_python import Vlmap, MapVerifier

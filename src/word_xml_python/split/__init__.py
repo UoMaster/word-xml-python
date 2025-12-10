@@ -1,6 +1,5 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from tkinter import W
 from lxml.etree import _Element
 from typing import Dict, List
 from ..models import CellInfo, TableInfo, XmlMeta

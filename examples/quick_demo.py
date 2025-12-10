@@ -1,6 +1,6 @@
 """快速示例 - 演示如何使用word_xml_python库"""
 
-from word_xml_python import process_word_table, export_to_csv, export_to_str
+from word_xml_python import process_word_table, export_to_csv
 
 # Word XML文档路径
 FILE_PATH = "/Users/wuhongbin/qilin/project/word-learn/word/word/document.xml"
