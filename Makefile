@@ -1,7 +1,7 @@
 PYTHON := poetry run python
 EXAMPLES_DIR := examples
 
-.PHONY: api demo extract vlmap
+.PHONY: api demo extract vl vl_v
 
 api:
 	$(PYTHON) $(EXAMPLES_DIR)/api_server.py
