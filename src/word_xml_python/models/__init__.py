@@ -5,4 +5,3 @@ from .cell import CellInfo, CellPBody, CellRBody
 from .xml_meta import XmlMeta
 
 __all__ = ["TableInfo", "CellInfo", "CellPBody", "CellRBody", "XmlMeta"]
-

@@ -8,21 +8,23 @@ from lxml.etree import _Element
 class WordXMLParser:
     """Word XML文档解析器"""
 
-    def __init__(self, file_path: Optional[str] = None, xml_string: Optional[str] = None):
+    def __init__(
+        self, file_path: Optional[str] = None, xml_string: Optional[str] = None
+    ):
         """
         初始化解析器
 
         Args:
             file_path: Word XML文档路径（可选）
             xml_string: Word XML字符串内容（可选）
-            
+
         注意：file_path 和 xml_string 必须提供其中一个
         """
         if file_path is None and xml_string is None:
             raise ValueError("必须提供 file_path 或 xml_string 参数")
         if file_path is not None and xml_string is not None:
             raise ValueError("file_path 和 xml_string 不能同时提供")
-            
+
         self.file_path = file_path
         self.xml_string = xml_string
         self.tree: _Element | None = None
@@ -40,7 +42,11 @@ class WordXMLParser:
                 content = f.read()
         else:
             # 如果是字符串，转换为bytes
-            content = self.xml_string.encode('utf-8') if isinstance(self.xml_string, str) else self.xml_string
+            content = (
+                self.xml_string.encode("utf-8")
+                if isinstance(self.xml_string, str)
+                else self.xml_string
+            )
 
         self.tree = etree.fromstring(content)
         self._process_namespaces()

@@ -3,4 +3,3 @@
 from .xml_parser import WordXMLParser
 
 __all__ = ["WordXMLParser"]
-

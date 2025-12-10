@@ -9,99 +9,100 @@ from ..core import TCPR_DELETE_TAGS
 
 class CellExtractor:
     """单元格信息提取器"""
-    
+
     def __init__(self, namespaces: Dict[str, str]):
         """
         初始化提取器
-        
+
         Args:
             namespaces: XML命名空间映射
         """
         self.namespaces = namespaces
         self.row_span_map: Dict[int, CellInfo] = {}
-    
+
     def extract_all(self, table_element: _Element) -> List[CellInfo]:
         """
         从表格元素中提取所有单元格信息
-        
+
         Args:
             table_element: 表格XML元素
-            
+
         Returns:
             单元格信息列表
         """
         cell_info_list: List[CellInfo] = []
         self.row_span_map = {}
-        
+
         rows = table_element.findall(".//w:tr", self.namespaces)
-        
+
         for row_index, row in enumerate(rows):
             cells = row.findall(".//w:tc", self.namespaces)
             actual_col_index = 0
-            
+
             for cell_index, cell in enumerate(cells):
-                cell_info = self._extract_cell(cell, row_index, cell_index, actual_col_index)
+                cell_info = self._extract_cell(
+                    cell, row_index, cell_index, actual_col_index
+                )
                 cell_info_list.append(cell_info)
                 actual_col_index += cell_info.col_span
-        
+
         return cell_info_list
-    
+
     def _extract_cell(
-        self, 
+        self,
         cell_element: _Element,
-        row_index: int, 
+        row_index: int,
         cell_index: int,
-        actual_col_index: int
+        actual_col_index: int,
     ) -> CellInfo:
         """
         提取单个单元格信息
-        
+
         Args:
             cell_element: 单元格XML元素
             row_index: 行索引
             cell_index: tc元素索引
             actual_col_index: 实际列位置
-            
+
         Returns:
             单元格信息对象
         """
         key = f"{row_index}-{cell_index}"
-        
+
         # 获取单元格属性
         tc_pr = cell_element.find("./w:tcPr", self.namespaces)
-        
+
         # 清理不需要的标签
         if tc_pr is not None:
             self._clean_tc_pr(tc_pr)
-        
+
         # 获取列合并信息
         col_span = self._get_col_span(tc_pr)
-        
+
         # 提取单元格内容
         cell_body = self._extract_p_body(cell_element)
-        
+
         # 创建单元格信息对象
         cell_info = CellInfo(
-            key=key,
-            col_span=col_span,
-            row_span=1,
-            body=cell_body,
-            is_empty_cell=False
+            key=key, col_span=col_span, row_span=1, body=cell_body, is_empty_cell=False
         )
-        
-        if len(cell_body) ==1 or len(cell_body[0].rList) == 0:
+
+        if len(cell_body) == 1 or len(cell_body[0].rList) == 0:
             cell_info.is_empty_cell = True
 
-
-        left_cell_key, top_cell_key = self._get_adjoining_cell_key(row_index, cell_index)
+        left_cell_key, top_cell_key = self._get_adjoining_cell_key(
+            row_index, cell_index
+        )
         cell_info.left_cell_key = left_cell_key
         cell_info.top_cell_key = top_cell_key
-        
+
         self._process_row_merge(tc_pr, actual_col_index, cell_info)
-        
+
         return cell_info
 
-    def _get_adjoining_cell_key(self, row_index: int, cell_index: int) -> (str | None, str | None):
+    def _get_adjoining_cell_key(
+        self, row_index: int, cell_index: int
+    ) -> (str | None, str | None):
         """
         获取相邻的单元格的key
 
@@ -112,11 +113,11 @@ class CellExtractor:
         left_cell_key = None if cell_index == 0 else f"{row_index}-{cell_index - 1}"
         top_cell_key = None if row_index == 0 else f"{row_index - 1}-{cell_index}"
         return (left_cell_key, top_cell_key)
-    
+
     def _clean_tc_pr(self, tc_pr: _Element) -> None:
         """
         清理tcPr元素中不需要的标签
-        
+
         Args:
             tc_pr: tcPr元素
         """
@@ -124,36 +125,33 @@ class CellExtractor:
             tag_element = tc_pr.find(tag, self.namespaces)
             if tag_element is not None:
                 tc_pr.remove(tag_element)
-    
+
     def _get_col_span(self, tc_pr: _Element | None) -> int:
         """
         获取列合并数
-        
+
         Args:
             tc_pr: tcPr元素
-            
+
         Returns:
             列合并数
         """
         if tc_pr is None:
             return 1
-        
+
         grid_span = tc_pr.find("./w:gridSpan", self.namespaces)
         if grid_span is not None:
             val = grid_span.get(f"{{{self.namespaces['w']}}}val", "1")
             return int(val)
-        
+
         return 1
-    
+
     def _process_row_merge(
-        self, 
-        tc_pr: _Element | None, 
-        actual_col_index: int,
-        cell_info: CellInfo
+        self, tc_pr: _Element | None, actual_col_index: int, cell_info: CellInfo
     ) -> None:
         """
         处理行合并逻辑
-        
+
         Args:
             tc_pr: tcPr元素
             actual_col_index: 实际列位置
@@ -162,12 +160,12 @@ class CellExtractor:
         if tc_pr is None:
             self.row_span_map.pop(actual_col_index, None)
             return
-        
+
         v_merge = tc_pr.find("./w:vMerge", self.namespaces)
-        
+
         if v_merge is not None:
             val = v_merge.get(f"{{{self.namespaces['w']}}}val", "continue")
-            
+
             if val == "restart":
                 self.row_span_map[actual_col_index] = cell_info
             elif val == "continue":
@@ -179,10 +177,10 @@ class CellExtractor:
     def _extract_p_body(self, cell_element: _Element) -> List[CellPBody]:
         """
         提取单元格内容
-        
+
         Args:
             cell_element: 单元格XML元素
-            
+
         Returns:
             单元格内容列表
         """
@@ -195,7 +193,9 @@ class CellExtractor:
             if pPrElement is not None:
                 jcElement = pPrElement.find("./w:jc", self.namespaces)
                 if jcElement is not None:
-                    pStyle["algin"] = jcElement.get(f"{{{self.namespaces['w']}}}val", "left")
+                    pStyle["algin"] = jcElement.get(
+                        f"{{{self.namespaces['w']}}}val", "left"
+                    )
             # 提取 p 中的文本样式
             rprElement = p_element.find("./w:rPr", self.namespaces)
             if rprElement is not None:
@@ -213,13 +213,12 @@ class CellExtractor:
                             style_key = "bold"
                         elif tag == "i":
                             style_key = "italic"
-                        pStyle[style_key] = element.get(f"{{{self.namespaces['w']}}}val", default)
-            
+                        pStyle[style_key] = element.get(
+                            f"{{{self.namespaces['w']}}}val", default
+                        )
+
             # 创建段落内容
-            pBody = CellPBody(
-                pStyle=pStyle,
-                rList=self._extract_r_body(p_element)
-            )
+            pBody = CellPBody(pStyle=pStyle, rList=self._extract_r_body(p_element))
             body.append(pBody)
         return body
 
@@ -229,7 +228,7 @@ class CellExtractor:
 
         Args:
             p_element: w:p元素
-            
+
         Returns:
             run内容列表
         """
@@ -247,8 +246,7 @@ class CellExtractor:
             # 提取 r 中的文本
             textElement = r_element.find("./w:t", self.namespaces)
             rBody = CellRBody(
-                rStyle=rStyle,
-                body=textElement.text if textElement is not None else ""
+                rStyle=rStyle, body=textElement.text if textElement is not None else ""
             )
             body.append(rBody)
         return body

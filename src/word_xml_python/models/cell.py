@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 @dataclass
 class CellRBody:
     """单元格run内容（文本片段）"""
+
     rStyle: str = ""
     body: str = ""
 
@@ -14,6 +15,7 @@ class CellRBody:
 @dataclass
 class CellPBody:
     """单元格段落内容"""
+
     pStyle: Dict[str, str] = field(default_factory=dict)
     rList: List[CellRBody] = field(default_factory=list)
 

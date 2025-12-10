@@ -17,3 +17,7 @@ vl:
 
 vl_v:
 	export MODEL=vl_v; $(PYTHON) $(EXAMPLES_DIR)/vl/vl_map_demo.py
+
+
+f:
+	poetry run ruff format .
