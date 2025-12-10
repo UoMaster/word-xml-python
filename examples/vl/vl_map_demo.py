@@ -45,7 +45,7 @@ def get_map_verifier(xml_string: bytes, json_string: str) -> MapVerifier:
     )
     errors = map_verifier.verify()
     if errors:
-        print(json.dumps(errors, ensure_ascii=False))
+        print(errors)
     else:
         print("没有错误")
 
