@@ -1,40 +1,52 @@
 from lxml import etree
 
 MAP_AI_TIP = """
-上面是一个 Word 表格的可视化呈现。
-任务：将这个表格分割成多个独立的"内容区域"。其实重点就是将表格中需要填写重复内容的区域分割出来。
+你是一个专业的 Word 表格结构分析专家。
 
-判断依据：
-1. **重复表(RepeatTable)**：必须有明确的表头行，下方包含多行结构相同的空白行用于填写重复数据。典型特征是有列标题和多行数据行。
-2. **左重复表(Left_RepeatTable)**：表格被垂直分割，左侧是标题，右侧一侧是重复表结构。
-3. **右重复表(Right_RepeatTable)**：表格被垂直分割，左侧是一侧是重复表结构，右侧是标题。
-3. **普通表单(Form)**：其他所有不包含重复数据结构的区域，包括单行字段、跨行字段等。
+## 任务
+将上面的 Word 表格分割成多个独立的"内容区域"，重点是识别需要填写重复内容的区域。
 
-关键识别特征：
-- 重复表：有列标题 + 多行相同结构的空白数据行
-- 表单：字段标签与填写区域一一对应，没有重复的数据行结构
+## 区域类型定义
+1. **Form（普通表单）**：字段标签与填写区域一一对应，没有重复的数据行结构
+2. **RepeatTable（重复表）**：有明确的表头行 + 下方多行结构相同的空白数据行
+3. **Left_RepeatTable（左重复表）**：左侧是标题列，右侧是重复表结构
+4. **Right_RepeatTable（右重复表）**：左侧是重复表结构，右侧是标题列
 
-请返回 JSON（只返回JSON，无需解释）：
+## 输出格式
+返回 JSON 数组，每个区域包含：
+- name: 区域名称（中文描述）
+- rows: 行号数组，从 1 开始，必须连续，如 [1, 2, 3]
+- type: 只能是 "Form" | "RepeatTable" | "Left_RepeatTable" | "Right_RepeatTable"
+- reason: 判断理由
+- split_after_column: 仅 Left/Right_RepeatTable 需要，表示在第几列后切割（从 0 开始）
+
+## 约束
+- 所有行必须被覆盖，不能遗漏
+- 行号不能重复
+- rows 必须是连续整数
+
+## 示例输出
 [
   {
-    "name": "", // 区域名称Left_RepeatTable
-    "rows": [], // int 的数组，表示区域行号 例如 [1, 2, 3]
-    "type": "Form", // "Form" 或 "RepeatTable"
-    "reason": "" // 原因描述
+    "name": "基本信息表单",
+    "rows": [1, 2],
+    "type": "Form",
+    "reason": "姓名、部门等单行字段，无重复结构"
   },
-]
-• rows 必须是连续的整数数组
-• type 只能是 "Form" 或 "RepeatTable" 或 "Left_RepeatTable" 或 "Right_RepeatTable"
-
-如果是 Left_RepeatTable 或 Right_RepeatTable，请明确指出切割点，从第几列开始切割：
-
-返回示例：
-{{
-  "type": "Left_RepeatTable",
-  "rows": [1, 2, 3, 4],
-  "split_after_column": 0,  // 在第0列后切开
-  "reason": "第0列是标题，第1-3列是重复表结构"
-}}
+  {
+    "name": "工作经历重复表",
+    "rows": [3, 4, 5],
+    "type": "RepeatTable",
+    "reason": "第3行是表头（公司、职位、时间），第4-5行是结构相同的空白数据行"
+  },
+  {
+    "name": "技能评分左重复表",
+    "rows": [6, 7, 8],
+    "type": "Left_RepeatTable",
+    "split_after_column": 0,
+    "reason": "第0列是技能名称标题，第1-3列是重复的评分结构"
+  }
+]只返回 JSON，不要其他解释。
 """
 
 TABLE_ROW_SEPARATOR_LINE = 70
