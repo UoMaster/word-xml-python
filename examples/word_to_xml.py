@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def extract_docx_to_meta(docx_path: str, output_dir: str = "word_meta") -> str:
-    project_root = Path(__file__).parent
+    project_root = Path(__file__).parent.parent
     meta_dir = project_root / output_dir
 
     if meta_dir.exists():
