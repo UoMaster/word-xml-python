@@ -1,4 +1,5 @@
 from lxml import etree
+from ..core.constants import WORD_NAMESPACES, WORD_NS_URI
 
 MAP_AI_TIP = """
 你是一个专业的 Word 表格结构分析专家。
@@ -55,18 +56,16 @@ TABLE_ROW_SEPARATOR_LINE = 70
 class Vlmap:
     table_xml_string: str
     tree: etree.Element
-    namespaces: dict[str, str]
     row_span_map: dict[tuple[int, int], int]
 
     def __init__(self, table_xml_string: str):
         self.table_xml_string = table_xml_string
         self.tree = etree.fromstring(self.table_xml_string)
-        self.namespaces = self.tree.nsmap
         self.row_span_map = {}
 
     def parse(self) -> str:
         vl = ""
-        trs = self.tree.findall(".//w:tr", self.namespaces)
+        trs = self.tree.findall(".//w:tr", WORD_NAMESPACES)
         trLen = len(trs)
 
         self._calculate_row_spans(trs)
@@ -84,28 +83,24 @@ class Vlmap:
         col_merge_state = {}
 
         for row_idx, tr in enumerate(trs):
-            tcs = tr.findall(".//w:tc", self.namespaces)
+            tcs = tr.findall(".//w:tc", WORD_NAMESPACES)
             col_idx = 0
 
             for tc in tcs:
                 while col_idx in col_merge_state and col_merge_state[col_idx] > row_idx:
                     col_idx += 1
 
-                tcPr = tc.find(".//w:tcPr", self.namespaces)
+                tcPr = tc.find(".//w:tcPr", WORD_NAMESPACES)
                 col_span = 1
 
                 if tcPr is not None:
-                    gridSpan = tcPr.find(".//w:gridSpan", self.namespaces)
+                    gridSpan = tcPr.find(".//w:gridSpan", WORD_NAMESPACES)
                     if gridSpan is not None:
-                        col_span = int(
-                            gridSpan.get(f"{{{self.namespaces['w']}}}val", "1")
-                        )
+                        col_span = int(gridSpan.get(f"{{{WORD_NS_URI}}}val", "1"))
 
-                    vMerge = tcPr.find(".//w:vMerge", self.namespaces)
+                    vMerge = tcPr.find(".//w:vMerge", WORD_NAMESPACES)
                     if vMerge is not None:
-                        vmerge_val = vMerge.get(
-                            f"{{{self.namespaces['w']}}}val", "continue"
-                        )
+                        vmerge_val = vMerge.get(f"{{{WORD_NS_URI}}}val", "continue")
 
                         if vmerge_val == "restart":
                             row_span = self._count_row_span(trs, row_idx, col_idx)
@@ -122,34 +117,30 @@ class Vlmap:
         span = 1
         for row_idx in range(start_row + 1, len(trs)):
             tr = trs[row_idx]
-            tcs = tr.findall(".//w:tc", self.namespaces)
+            tcs = tr.findall(".//w:tc", WORD_NAMESPACES)
 
             current_col = 0
             found = False
 
             for tc in tcs:
                 if current_col == col_idx:
-                    tcPr = tc.find(".//w:tcPr", self.namespaces)
+                    tcPr = tc.find(".//w:tcPr", WORD_NAMESPACES)
                     if tcPr is not None:
-                        vMerge = tcPr.find(".//w:vMerge", self.namespaces)
+                        vMerge = tcPr.find(".//w:vMerge", WORD_NAMESPACES)
                         if vMerge is not None:
-                            vmerge_val = vMerge.get(
-                                f"{{{self.namespaces['w']}}}val", "continue"
-                            )
+                            vmerge_val = vMerge.get(f"{{{WORD_NS_URI}}}val", "continue")
                             if vmerge_val == "continue" or vmerge_val is None:
                                 span += 1
                                 found = True
                                 break
                     break
 
-                tcPr = tc.find(".//w:tcPr", self.namespaces)
+                tcPr = tc.find(".//w:tcPr", WORD_NAMESPACES)
                 col_span = 1
                 if tcPr is not None:
-                    gridSpan = tcPr.find(".//w:gridSpan", self.namespaces)
+                    gridSpan = tcPr.find(".//w:gridSpan", WORD_NAMESPACES)
                     if gridSpan is not None:
-                        col_span = int(
-                            gridSpan.get(f"{{{self.namespaces['w']}}}val", "1")
-                        )
+                        col_span = int(gridSpan.get(f"{{{WORD_NS_URI}}}val", "1"))
                 current_col += col_span
 
             if not found:
@@ -171,15 +162,15 @@ class Vlmap:
         cells = []
         col_idx = 0
 
-        for tc in tr.findall(".//w:tc", self.namespaces):
+        for tc in tr.findall(".//w:tc", WORD_NAMESPACES):
             cells.append(self.print_table_cell(tc, row_idx, col_idx))
 
-            tcPr = tc.find(".//w:tcPr", self.namespaces)
+            tcPr = tc.find(".//w:tcPr", WORD_NAMESPACES)
             col_span = 1
             if tcPr is not None:
-                gridSpan = tcPr.find(".//w:gridSpan", self.namespaces)
+                gridSpan = tcPr.find(".//w:gridSpan", WORD_NAMESPACES)
                 if gridSpan is not None:
-                    col_span = int(gridSpan.get(f"{{{self.namespaces['w']}}}val", "1"))
+                    col_span = int(gridSpan.get(f"{{{WORD_NS_URI}}}val", "1"))
             col_idx += col_span
 
         row_info = f"第{row_idx + 1}行 | " + " | ".join(cells) + " |\n"
@@ -187,23 +178,23 @@ class Vlmap:
         return row_info
 
     def print_table_cell(self, tc: etree.Element, row_idx: int, col_idx: int) -> str:
-        wts = tc.findall(".//w:t", self.namespaces)
+        wts = tc.findall(".//w:t", WORD_NAMESPACES)
 
-        tcPr = tc.find(".//w:tcPr", self.namespaces)
+        tcPr = tc.find(".//w:tcPr", WORD_NAMESPACES)
         merge_info = ""
 
         if tcPr is not None:
-            gridSpan = tcPr.find(".//w:gridSpan", self.namespaces)
-            vMerge = tcPr.find(".//w:vMerge", self.namespaces)
+            gridSpan = tcPr.find(".//w:gridSpan", WORD_NAMESPACES)
+            vMerge = tcPr.find(".//w:vMerge", WORD_NAMESPACES)
 
             col_span = 1
             row_span = 0
 
             if gridSpan is not None:
-                col_span = int(gridSpan.get(f"{{{self.namespaces['w']}}}val", "1"))
+                col_span = int(gridSpan.get(f"{{{WORD_NS_URI}}}val", "1"))
 
             if vMerge is not None:
-                vmerge_val = vMerge.get(f"{{{self.namespaces['w']}}}val", "continue")
+                vmerge_val = vMerge.get(f"{{{WORD_NS_URI}}}val", "continue")
                 if vmerge_val == "restart":
                     row_span = self.row_span_map.get((row_idx, col_idx), 1)
 

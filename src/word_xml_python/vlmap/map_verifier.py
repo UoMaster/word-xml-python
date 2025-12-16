@@ -1,9 +1,10 @@
 from dataclasses import asdict
 import json
-from typing import Dict, List
+from typing import List
 from lxml import etree
 
 from word_xml_python.models import VerifierMeta, ErrorInfo
+from word_xml_python.core.constants import WORD_NAMESPACES
 
 
 """
@@ -33,20 +34,17 @@ MapVerifier 校验规则汇总：
 class MapVerifier:
     metas: List[VerifierMeta] = []
     trs: List[etree._Element] = []
-    namespaces: Dict[str, str] = {}
 
     def __init__(
         self,
         verifier_meta: List[VerifierMeta],
         trs: List[etree._Element],
-        namespaces: Dict[str, str],
     ):
         if verifier_meta and isinstance(verifier_meta[0], dict):
             self.metas = [VerifierMeta(**meta) for meta in verifier_meta]
         else:
             self.metas = verifier_meta
         self.trs = trs
-        self.namespaces = namespaces
 
     def verify(self) -> List[ErrorInfo]:
         error_infos: List[ErrorInfo] = []
@@ -182,9 +180,9 @@ class MapVerifier:
 
         first_row_idx = meta.rows[0] - 1
         first_tr = self.trs[first_row_idx]
-        first_row_cells = first_tr.findall(".//w:tc", self.namespaces)
+        first_row_cells = first_tr.findall(".//w:tc", WORD_NAMESPACES)
         first_row_has_content = any(
-            len(tc.findall(".//w:t", self.namespaces)) > 0 for tc in first_row_cells
+            len(tc.findall(".//w:t", WORD_NAMESPACES)) > 0 for tc in first_row_cells
         )
 
         if not first_row_has_content:
@@ -215,7 +213,7 @@ class MapVerifier:
         for row_num in meta.rows:
             row_idx = row_num - 1
             tr = self.trs[row_idx]
-            cells = tr.findall(".//w:tc", self.namespaces)
+            cells = tr.findall(".//w:tc", WORD_NAMESPACES)
             if len(cells) < 2:
                 error_infos.append(
                     ErrorInfo(
@@ -245,7 +243,7 @@ class MapVerifier:
         for row_num in meta.rows:
             row_idx = row_num - 1
             tr = self.trs[row_idx]
-            cells = tr.findall(".//w:tc", self.namespaces)
+            cells = tr.findall(".//w:tc", WORD_NAMESPACES)
             if len(cells) < 2:
                 error_infos.append(
                     ErrorInfo(

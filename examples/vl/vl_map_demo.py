@@ -28,25 +28,25 @@ def main():
 
 
 def get_vl_map(xml_string: bytes) -> str:
-    # 读取xml文件
+    from word_xml_python.core.constants import WORD_NAMESPACES
 
+    # 读取xml文件
     tree = etree.fromstring(xml_string)
-    rootnamespaces = tree.nsmap
     # 创建Vlmap对象
-    vlmap = Vlmap(etree.tostring(tree.find(".//w:tbl", rootnamespaces)))
+    vlmap = Vlmap(etree.tostring(tree.find(".//w:tbl", WORD_NAMESPACES)))
     # 解析表格
     return vlmap.parse_and_tip()
 
 
 def get_map_verifier(xml_string: bytes, json_string: str) -> MapVerifier:
+    from word_xml_python.core.constants import WORD_NAMESPACES
+
     tree = etree.fromstring(xml_string)
-    rootnamespaces = tree.nsmap
     # 创建Vlmap对象
-    trs = tree.find(".//w:tbl", rootnamespaces).findall(".//w:tr", rootnamespaces)
+    trs = tree.find(".//w:tbl", WORD_NAMESPACES).findall(".//w:tr", WORD_NAMESPACES)
     map_verifier = MapVerifier(
         verifier_meta=json.loads(json_string),
         trs=trs,
-        namespaces=rootnamespaces,
     )
     errors = map_verifier.verify()
     if errors:

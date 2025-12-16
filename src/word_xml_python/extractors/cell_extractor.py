@@ -5,19 +5,14 @@ from lxml.etree import _Element
 
 from ..models import CellInfo, CellPBody, CellRBody
 from ..core import TCPR_DELETE_TAGS
+from ..core.constants import WORD_NAMESPACES, WORD_NS_URI
 
 
 class CellExtractor:
     """单元格信息提取器"""
 
-    def __init__(self, namespaces: Dict[str, str]):
-        """
-        初始化提取器
-
-        Args:
-            namespaces: XML命名空间映射
-        """
-        self.namespaces = namespaces
+    def __init__(self):
+        """初始化提取器"""
         self.row_span_map: Dict[int, CellInfo] = {}
 
     def extract_all(self, table_element: _Element) -> List[CellInfo]:
@@ -33,10 +28,10 @@ class CellExtractor:
         cell_info_list: List[CellInfo] = []
         self.row_span_map = {}
 
-        rows = table_element.findall(".//w:tr", self.namespaces)
+        rows = table_element.findall(".//w:tr", WORD_NAMESPACES)
 
         for row_index, row in enumerate(rows):
-            cells = row.findall(".//w:tc", self.namespaces)
+            cells = row.findall(".//w:tc", WORD_NAMESPACES)
             actual_col_index = 0
 
             for cell_index, cell in enumerate(cells):
@@ -70,7 +65,7 @@ class CellExtractor:
         key = f"{row_index}-{cell_index}"
 
         # 获取单元格属性
-        tc_pr = cell_element.find("./w:tcPr", self.namespaces)
+        tc_pr = cell_element.find("./w:tcPr", WORD_NAMESPACES)
 
         # 清理不需要的标签
         if tc_pr is not None:
@@ -122,7 +117,7 @@ class CellExtractor:
             tc_pr: tcPr元素
         """
         for tag in TCPR_DELETE_TAGS:
-            tag_element = tc_pr.find(tag, self.namespaces)
+            tag_element = tc_pr.find(tag, WORD_NAMESPACES)
             if tag_element is not None:
                 tc_pr.remove(tag_element)
 
@@ -139,9 +134,9 @@ class CellExtractor:
         if tc_pr is None:
             return 1
 
-        grid_span = tc_pr.find("./w:gridSpan", self.namespaces)
+        grid_span = tc_pr.find("./w:gridSpan", WORD_NAMESPACES)
         if grid_span is not None:
-            val = grid_span.get(f"{{{self.namespaces['w']}}}val", "1")
+            val = grid_span.get(f"{{{WORD_NS_URI}}}val", "1")
             return int(val)
 
         return 1
@@ -161,10 +156,10 @@ class CellExtractor:
             self.row_span_map.pop(actual_col_index, None)
             return
 
-        v_merge = tc_pr.find("./w:vMerge", self.namespaces)
+        v_merge = tc_pr.find("./w:vMerge", WORD_NAMESPACES)
 
         if v_merge is not None:
-            val = v_merge.get(f"{{{self.namespaces['w']}}}val", "continue")
+            val = v_merge.get(f"{{{WORD_NS_URI}}}val", "continue")
 
             if val == "restart":
                 self.row_span_map[actual_col_index] = cell_info
@@ -185,19 +180,17 @@ class CellExtractor:
             单元格内容列表
         """
         body: List[CellPBody] = []
-        p_elements = cell_element.findall("./w:p", self.namespaces)
+        p_elements = cell_element.findall("./w:p", WORD_NAMESPACES)
         for p_element in p_elements:
             pStyle: Dict[str, str] = {}
-            pPrElement = p_element.find("./w:pPr", self.namespaces)
+            pPrElement = p_element.find("./w:pPr", WORD_NAMESPACES)
             # 提取 p 中的段落样式
             if pPrElement is not None:
-                jcElement = pPrElement.find("./w:jc", self.namespaces)
+                jcElement = pPrElement.find("./w:jc", WORD_NAMESPACES)
                 if jcElement is not None:
-                    pStyle["algin"] = jcElement.get(
-                        f"{{{self.namespaces['w']}}}val", "left"
-                    )
+                    pStyle["algin"] = jcElement.get(f"{{{WORD_NS_URI}}}val", "left")
             # 提取 p 中的文本样式
-            rprElement = p_element.find("./w:rPr", self.namespaces)
+            rprElement = p_element.find("./w:rPr", WORD_NAMESPACES)
             if rprElement is not None:
                 style_tags = [
                     ("color", "black"),
@@ -205,7 +198,7 @@ class CellExtractor:
                     ("i", "false"),
                 ]
                 for tag, default in style_tags:
-                    element = rprElement.find(f"./w:{tag}", self.namespaces)
+                    element = rprElement.find(f"./w:{tag}", WORD_NAMESPACES)
                     if element is not None:
                         # 映射标签名称
                         style_key = tag
@@ -214,7 +207,7 @@ class CellExtractor:
                         elif tag == "i":
                             style_key = "italic"
                         pStyle[style_key] = element.get(
-                            f"{{{self.namespaces['w']}}}val", default
+                            f"{{{WORD_NS_URI}}}val", default
                         )
 
             # 创建段落内容
@@ -233,18 +226,18 @@ class CellExtractor:
             run内容列表
         """
         body: List[CellRBody] = []
-        r_elements = p_element.findall("./w:r", self.namespaces)
+        r_elements = p_element.findall("./w:r", WORD_NAMESPACES)
         for r_element in r_elements:
             rStyle: str = ""
             # 提取 r 中的文本样式
-            rPrElement = r_element.find("./w:rPr", self.namespaces)
+            rPrElement = r_element.find("./w:rPr", WORD_NAMESPACES)
             if rPrElement is not None:
-                colorElement = rPrElement.find("./w:color", self.namespaces)
+                colorElement = rPrElement.find("./w:color", WORD_NAMESPACES)
                 if colorElement is not None:
-                    rStyle = colorElement.get(f"{{{self.namespaces['w']}}}val", "")
+                    rStyle = colorElement.get(f"{{{WORD_NS_URI}}}val", "")
 
             # 提取 r 中的文本
-            textElement = r_element.find("./w:t", self.namespaces)
+            textElement = r_element.find("./w:t", WORD_NAMESPACES)
             rBody = CellRBody(
                 rStyle=rStyle, body=textElement.text if textElement is not None else ""
             )

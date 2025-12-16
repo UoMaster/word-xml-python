@@ -5,11 +5,11 @@ Word XML Python - Word XML文档处理库
 """
 
 from typing import List
-from .models import TableInfo, CellInfo
+from .models import TableInfo, CellInfo, TableSplitResult
 from .parser import WordXMLParser
 from .extractors import TableExtractor, CellExtractor
 from .exporters import CSVExporter
-from .split import TableSplitter, TableSplitResult
+from .split import TableSplitter
 from .vlmap import Vlmap, MapVerifier
 
 __version__ = "0.1.0"
@@ -56,17 +56,17 @@ def process_word_table(file_path: str) -> List[TableSplitResult]:
     if table_element is None:
         raise ValueError("未找到表格元素")
 
-    table_splitter = TableSplitter(table_element, parser.get_namespaces())
+    table_splitter = TableSplitter(table_element)
     table_splitter.split()
     tables = table_splitter.getTables()
 
     for table_meta in tables:
         # 提取表格信息
-        table_extractor = TableExtractor(parser.get_namespaces())
+        table_extractor = TableExtractor()
         table_info = table_extractor.extract(table_meta.table)
         table_meta.table_info = table_info
         # 提取单元格信息
-        cell_extractor = CellExtractor(parser.get_namespaces())
+        cell_extractor = CellExtractor()
         cell_list = cell_extractor.extract_all(table_meta.table)
         table_meta.table_cell_list = cell_list
         table_meta.table_cell_csv_str = export_to_str(cell_list)
@@ -101,17 +101,17 @@ def process_word_table_from_xml(xml_string: str) -> List[TableSplitResult]:
     if table_element is None:
         raise ValueError("未找到表格元素")
 
-    table_splitter = TableSplitter(table_element, parser.get_namespaces())
+    table_splitter = TableSplitter(table_element)
     table_splitter.split()
     tables = table_splitter.getTables()
 
     for table_meta in tables:
         # 提取表格信息
-        table_extractor = TableExtractor(parser.get_namespaces())
+        table_extractor = TableExtractor()
         table_info = table_extractor.extract(table_meta.table)
         table_meta.table_info = table_info
         # 提取单元格信息
-        cell_extractor = CellExtractor(parser.get_namespaces())
+        cell_extractor = CellExtractor()
         cell_list = cell_extractor.extract_all(table_meta.table)
         table_meta.table_cell_list = cell_list
         table_meta.table_cell_csv_str = export_to_str(cell_list)

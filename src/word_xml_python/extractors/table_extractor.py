@@ -1,22 +1,17 @@
 """表格信息提取器"""
 
-from typing import Dict
 from lxml.etree import _Element
 
 from ..models import TableInfo
+from ..core.constants import WORD_NAMESPACES
 
 
 class TableExtractor:
     """表格信息提取器"""
 
-    def __init__(self, namespaces: Dict[str, str]):
-        """
-        初始化提取器
-
-        Args:
-            namespaces: XML命名空间映射
-        """
-        self.namespaces = namespaces
+    def __init__(self):
+        """初始化提取器"""
+        pass
 
     def extract(self, table_element: _Element) -> TableInfo:
         """
@@ -29,11 +24,11 @@ class TableExtractor:
             表格信息对象
         """
         # 获取列数
-        tbl_grid = table_element.find("./w:tblGrid", self.namespaces)
+        tbl_grid = table_element.find("./w:tblGrid", WORD_NAMESPACES)
         col_count = len(tbl_grid) if tbl_grid is not None else 0
 
         # 获取行数
-        rows = table_element.findall(".//w:tr", self.namespaces)
+        rows = table_element.findall(".//w:tr", WORD_NAMESPACES)
         row_count = len(rows)
 
         return TableInfo(col=col_count, row=row_count)
