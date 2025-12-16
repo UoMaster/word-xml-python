@@ -6,8 +6,6 @@ EXAMPLES_DIR := examples
 api:
 	$(PYTHON) $(EXAMPLES_DIR)/api_server.py
 
-demo:
-	$(PYTHON) $(EXAMPLES_DIR)/quick_demo.py
 
 extract:
 	$(PYTHON) $(EXAMPLES_DIR)/word_to_xml.py $(DOCX)

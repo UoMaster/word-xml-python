@@ -1,22 +1,9 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict
 import json
 from typing import Dict, List
 from lxml import etree
 
-
-@dataclass
-class VerifierMeta:
-    name: str
-    rows: List[int]
-    type: str
-    reason: str
-    split_after_column: int | None = None
-
-
-@dataclass
-class ErrorInfo:
-    source_meta: str
-    error_msg: str
+from word_xml_python.models import VerifierMeta, ErrorInfo
 
 
 """

@@ -1,18 +1,18 @@
 from copy import deepcopy
-from dataclasses import dataclass
 from lxml.etree import _Element
 from typing import Dict, List
-from ..models import CellInfo, TableInfo, XmlMeta
+from ..models import VerifierMeta
 from lxml import etree
+
+from dataclasses import dataclass
 
 
 @dataclass
 class TableSplitResult:
-    table: _Element
+    """表格分割结果"""
+
+    table_xml: str
     table_type: str
-    table_cell_csv_str: str = ""
-    table_info: TableInfo | None = None
-    table_cell_list: List[CellInfo] | None = None
 
 
 class TableSplitter:
@@ -20,169 +20,142 @@ class TableSplitter:
 
     tblElement: _Element
     namespaces: Dict[str, str]
-    xmlMetaList: List[XmlMeta]
-    ns: Dict[str, str]
-    currentTblElement: _Element
-    tables: List[TableSplitResult]
+    verifier_meta: List[VerifierMeta]
+    _current_template_xml: _Element
+    _all_tr: List[_Element]
+    result: List[TableSplitResult]
 
-    def __init__(self, tblElement: _Element, namespaces: Dict[str, str]):
+    def __init__(
+        self,
+        tblElement: _Element,
+        namespaces: Dict[str, str],
+        verifier_meta: List[VerifierMeta],
+    ):
         self.tblElement = tblElement
         self.namespaces = namespaces
-        self.xmlMetaList: List[XmlMeta] = []
-        self.ns = namespaces
-        self.tables = []
+        self.verifier_meta = verifier_meta
+        self._all_tr = self.tblElement.findall(".//w:tr", self.namespaces)
+        self.result = []
 
-    def split(self):
-        """分割表格"""
-        self.currentTblElement = self.copyTemplateTbl()
-        tr_elements = self.tblElement.findall(".//w:tr", self.namespaces)
-        all_tr_len = len(tr_elements)
-        # 上指针
-        top_point = 0
-        # 下指针
-        bottom_point = top_point + 1
+    def create_template_xml(self) -> _Element:
+        tbl: _Element = deepcopy(self.tblElement)
+        for tr in tbl.findall(".//w:tr", self.namespaces):
+            tbl.remove(tr)
+        return tbl
 
-        # 1. 如果 t 指针和 b 指针 的列数相同则 添加 t 指针的行到当前表，并移动 t + 1 指针和 b + 1 指针
-        while top_point < all_tr_len:
-            # 边界检查：确保 bottom_point 不越界
-            if bottom_point >= all_tr_len:
-                # 如果 bottom_point 超出范围，将剩余的行添加到当前表
-                self.currentTblElement.append(deepcopy(tr_elements[top_point]))
-                self.load_new_template_tbl()
-                break
+    def set_current_template_xml(self):
+        self.current_template_xml = self.create_template_xml()
 
-            # 元素
-            t_el = tr_elements[top_point]
-            b_el = tr_elements[bottom_point]
+    def template_xml_to_str(self) -> str:
+        return etree.tostring(
+            self.current_template_xml, pretty_print=True, encoding="UTF-8"
+        ).decode("UTF-8")
 
-            # 列数
-            t_len = len(t_el.findall(".//w:tc", self.namespaces))
-            b_len = len(b_el.findall(".//w:tc", self.namespaces))
-            h_len: int | None = None
+    def split(self) -> List[TableSplitResult]:
+        verifier_meta = self.verifier_meta
+        for meta in verifier_meta:
+            self.set_current_template_xml()
+            if meta.type == "Form":
+                self._split_form(meta)
+            elif meta.type == "RepeatTable":
+                self._split_repeat_table(meta)
+            elif meta.type == "Left_RepeatTable":
+                self._split_left_repeat_table(meta)
+        return self.result
 
-            # 匹配结果
-            success_num = 0
+    def _extract_cell_text(self, tc_element: _Element) -> str:
+        texts = []
+        for t in tc_element.findall(".//w:t", self.namespaces):
+            if t.text:
+                texts.append(t.text)
+        return "".join(texts)
 
-            GET_LEN = 2
+    def _create_single_cell_table(self, text: str) -> _Element:
+        tbl = self.create_template_xml()
 
-            if t_len == 1:
-                h_len = b_len
-                while 1:
-                    bottom_point += 1
-                    # 边界检查
-                    if bottom_point >= all_tr_len:
-                        bottom_point = all_tr_len - 1
-                        break
-                    b_el = tr_elements[bottom_point]
-                    b_len = len(b_el.findall(".//w:tc", self.namespaces))
-                    if b_len == h_len and self.is_tr_empty(b_el):
-                        success_num += 1
-                    else:
-                        bottom_point -= 1
-                        break
-                if success_num >= 2:
-                    self.currentTblElement.append(deepcopy(t_el))
-                    self.load_new_template_tbl()
-                    # 只提取 2 行
+        w_ns = self.namespaces.get(
+            "w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        )
 
-                    for _ in range(GET_LEN):
-                        top_point += 1
-                        # 边界检查
-                        if top_point >= all_tr_len:
-                            break
-                        t_el = tr_elements[top_point]
-                        t_len = len(t_el.findall(".//w:tc", self.namespaces))
-                        self.currentTblElement.append(deepcopy(t_el))
+        # tr -> tc -> p -> r -> t
+        tr = etree.Element(f"{{{w_ns}}}tr")
+        tc = etree.SubElement(tr, f"{{{w_ns}}}tc")
+        p = etree.SubElement(tc, f"{{{w_ns}}}p")
+        r = etree.SubElement(p, f"{{{w_ns}}}r")
+        t = etree.SubElement(r, f"{{{w_ns}}}t")
+        t.text = text
 
-                    self.load_new_template_tbl("repeat")
-                    top_point = bottom_point + 1
-                    bottom_point = top_point + 1
-            elif self.is_tr_empty(b_el) and b_len == t_len:
-                success_num += 1
-                while 1:
-                    bottom_point += 1
-                    b_el = tr_elements[bottom_point]
-                    b_len = len(b_el.findall(".//w:tc", self.namespaces))
-                    if not self.is_tr_empty(b_el) or b_len != t_len:
-                        bottom_point -= 1
-                        break
-                    else:
-                        success_num += 1
-                if success_num >= 2:
-                    self.load_new_template_tbl()
-                    for _ in range(GET_LEN):
-                        t_el = tr_elements[top_point]
-                        self.currentTblElement.append(deepcopy(t_el))
-                        top_point += 1
-                        # 边界检查
-                        if top_point >= all_tr_len:
-                            break
-                    self.load_new_template_tbl("repeat")
-                    top_point = bottom_point + 1
-                    bottom_point = top_point + 1
+        tbl.append(tr)
+        return tbl
 
-            else:
-                if t_len == h_len:
-                    self.currentTblElement.append(deepcopy(t_el))
-                    top_point += 1
-                    bottom_point += 1
-                else:
-                    if t_len != 1:
-                        self.currentTblElement.append(deepcopy(t_el))
-                        top_point += 1
-                        bottom_point += 1
+    def _split_form(self, meta: VerifierMeta):
+        current_template_xml = self.current_template_xml
 
-    def load_new_template_tbl(self, type: str = "normal"):
-        self.tables.append(TableSplitResult(deepcopy(self.currentTblElement), type))
-        self.currentTblElement = self.copyTemplateTbl()
+        for row_num in meta.rows:
+            tr = self._all_tr[row_num - 1]
+            current_template_xml.append(tr)
 
-    def is_tr_empty(self, tr_element: _Element) -> bool:
-        """
-        判断一个 tr 元素下的所有 tc 单元格是否都为空
+        self.result.append(
+            TableSplitResult(table_xml=self.template_xml_to_str(), table_type=meta.type)
+        )
 
-        Args:
-            tr_element: 要检查的 tr 元素
+    def _split_repeat_table(self, meta: VerifierMeta):
+        meta.rows = [meta.rows[0], meta.rows[1]]
+        self._split_form(meta)
 
-        Returns:
-            bool: 如果所有单元格都为空返回 True，否则返回 False
-        """
-        # 获取所有的 tc 单元格
-        tc_elements = tr_element.findall(".//w:tc", self.namespaces)
+    def _split_left_repeat_table(self, meta: VerifierMeta):
+        split_after_column = (
+            meta.split_after_column if meta.split_after_column is not None else 0
+        )
+        namespaces = self.namespaces
 
-        # 如果没有单元格，认为是空的
-        if not tc_elements:
-            return True
+        rows_to_process = [self._all_tr[row_num - 1] for row_num in meta.rows]
 
-        # 检查每个单元格
-        for tc in tc_elements:
-            # 查找单元格中的所有文本元素 w:t
-            text_elements = tc.findall(".//w:t", self.namespaces)
+        for col_idx in range(split_after_column + 1):
+            col_texts = []
+            for tr in rows_to_process:
+                tcs = tr.findall(".//w:tc", namespaces)
+                if col_idx < len(tcs):
+                    cell_text = self._extract_cell_text(tcs[col_idx])
+                    if cell_text:
+                        col_texts.append(cell_text)
 
-            # 检查是否有非空文本
-            for text_elem in text_elements:
-                text_content = text_elem.text
-                # 如果有非空且非空白的文本内容，则该单元格不为空
-                if text_content and text_content.strip():
-                    return False
+            merged_text = " ".join(col_texts)
 
-        # 所有单元格都为空
-        return True
+            single_cell_table = self._create_single_cell_table(merged_text)
+            self.result.append(
+                TableSplitResult(
+                    table_xml=etree.tostring(
+                        single_cell_table, pretty_print=True, encoding="UTF-8"
+                    ).decode("UTF-8"),
+                    table_type=meta.type,
+                )
+            )
 
-    def copyTemplateTbl(self) -> _Element:
-        newTblElement = etree.Element(f"{{{self.ns['w']}}}tbl", nsmap=self.namespaces)
+        right_table = self.create_template_xml()
 
-        tbl_pr = self.tblElement.find("./w:tblPr", self.namespaces)
-        if tbl_pr is not None:
-            newTblElement.append(deepcopy(tbl_pr))
+        rows_for_repeat = (
+            rows_to_process[:2] if len(rows_to_process) >= 2 else rows_to_process
+        )
 
-        tbl_grid = self.tblElement.find("./w:tblGrid", self.namespaces)
-        if tbl_grid is not None:
-            newTblElement.append(deepcopy(tbl_grid))
+        for tr in rows_for_repeat:
+            new_tr = deepcopy(tr)
+            tcs = new_tr.findall(".//w:tc", namespaces)
 
-        return newTblElement
+            for col_idx in range(split_after_column, -1, -1):
+                if col_idx < len(tcs):
+                    new_tr.remove(tcs[col_idx])
 
-    def getTables(self) -> List[TableSplitResult]:
-        return deepcopy(self.tables)
+            right_table.append(new_tr)
+
+        self.result.append(
+            TableSplitResult(
+                table_xml=etree.tostring(
+                    right_table, pretty_print=True, encoding="UTF-8"
+                ).decode("UTF-8"),
+                table_type=meta.type,
+            )
+        )
 
 
 __all__ = ["TableSplitter"]
