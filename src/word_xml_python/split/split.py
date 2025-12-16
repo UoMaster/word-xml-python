@@ -67,6 +67,12 @@ class TableSplitter:
     def _create_single_cell_table(self, text: str) -> _Element:
         tbl = self.create_template_xml()
 
+        tbl_grid = tbl.find(".//w:tblGrid", WORD_NAMESPACES)
+        if tbl_grid is not None:
+            grid_cols = tbl_grid.findall("w:gridCol", WORD_NAMESPACES)
+            for grid_col in grid_cols[1:]:
+                tbl_grid.remove(grid_col)
+
         # tr -> tc -> p -> r -> t
         tr = etree.Element(f"{{{WORD_NS_URI}}}tr")
         tc = etree.SubElement(tr, f"{{{WORD_NS_URI}}}tc")
@@ -122,6 +128,14 @@ class TableSplitter:
             )
 
         right_table = self.create_template_xml()
+
+        # 删除 tblGrid 中对应的 gridCol
+        tbl_grid = right_table.find(".//w:tblGrid", WORD_NAMESPACES)
+        if tbl_grid is not None:
+            grid_cols = tbl_grid.findall("w:gridCol", WORD_NAMESPACES)
+            for col_idx in range(split_after_column, -1, -1):
+                if col_idx < len(grid_cols):
+                    tbl_grid.remove(grid_cols[col_idx])
 
         rows_for_repeat = (
             rows_to_process[:2] if len(rows_to_process) >= 2 else rows_to_process
