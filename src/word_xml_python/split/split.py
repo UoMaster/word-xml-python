@@ -117,7 +117,7 @@ class TableSplitter:
                     table_xml=etree.tostring(
                         single_cell_table, pretty_print=True, encoding="UTF-8"
                     ).decode("UTF-8"),
-                    table_type=meta.type,
+                    table_type="Form",
                 )
             )
 
@@ -142,7 +142,7 @@ class TableSplitter:
                 table_xml=etree.tostring(
                     right_table, pretty_print=True, encoding="UTF-8"
                 ).decode("UTF-8"),
-                table_type=meta.type,
+                table_type="RepeatTable",
             )
         )
 
