@@ -5,6 +5,7 @@ from ..models import VerifierMeta
 from lxml import etree
 from ..models import TableSplitResult
 from ..core.constants import WORD_NAMESPACES, WORD_NS_URI
+from .split_verifier import SplitVerifier
 
 
 class TableSplitter:
@@ -50,6 +51,10 @@ class TableSplitter:
                 self._split_repeat_table(meta)
             elif meta.type == "Left_RepeatTable":
                 self._split_left_repeat_table(meta)
+
+        split_verifier = SplitVerifier(self.result)
+        self.result = split_verifier.verify_and_fix()
+
         return self.result
 
     def _extract_cell_text(self, tc_element: _Element) -> str:
