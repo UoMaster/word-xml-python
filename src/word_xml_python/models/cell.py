@@ -31,6 +31,9 @@ class CellInfo:
     is_empty_cell: bool = False
     left_cell_key: str | None = None
     top_cell_key: str | None = None
+    left_text_body: str | None = None  # 左边单元格的文本内容
+    top_text_body: str | None = None  # 上边单元格的文本内容
+    is_merge_continue_cell: bool = False  # 是否是行合并的单元格
 
     def __repr__(self) -> str:
         return (
@@ -41,6 +44,9 @@ class CellInfo:
             f"is_empty_cell={self.is_empty_cell}"
             f"left_cell_key={self.left_cell_key}"
             f"top_cell_key={self.top_cell_key}"
+            f"left_text_body={self.left_text_body}"
+            f"top_text_body={self.top_text_body}"
+            f"is_merge_continue_cell={self.is_merge_continue_cell}"
         )
 
     def to_dict(self) -> Dict[str, Any]:

@@ -14,6 +14,7 @@ class CellExtractor:
     def __init__(self):
         """初始化提取器"""
         self.row_span_map: Dict[int, CellInfo] = {}
+        self.cell_info_map: Dict[str, CellInfo] = {}
 
     def extract_all(self, table_element: _Element) -> List[CellInfo]:
         """
@@ -27,6 +28,7 @@ class CellExtractor:
         """
         cell_info_list: List[CellInfo] = []
         self.row_span_map = {}
+        self.cell_info_map = {}
 
         rows = table_element.findall(".//w:tr", WORD_NAMESPACES)
 
@@ -38,8 +40,12 @@ class CellExtractor:
                 cell_info = self._extract_cell(
                     cell, row_index, cell_index, actual_col_index
                 )
+                self.cell_info_map[cell_info.key] = cell_info
                 cell_info_list.append(cell_info)
                 actual_col_index += cell_info.col_span
+
+        for cell_info in cell_info_list:
+            self._fill_adjoining_text_body(cell_info)
 
         return cell_info_list
 
@@ -109,6 +115,34 @@ class CellExtractor:
         top_cell_key = None if row_index == 0 else f"{row_index - 1}-{cell_index}"
         return (left_cell_key, top_cell_key)
 
+    def _fill_adjoining_text_body(self, cell_info: CellInfo) -> None:
+        # 填充左边单元格的文本内容
+        if cell_info.left_cell_key and cell_info.left_cell_key in self.cell_info_map:
+            left_cell = self.cell_info_map[cell_info.left_cell_key]
+            cell_info.left_text_body = self._get_cell_text_body(left_cell)
+
+        # 填充上边单元格的文本内容
+        if cell_info.top_cell_key and cell_info.top_cell_key in self.cell_info_map:
+            top_cell = self.cell_info_map[cell_info.top_cell_key]
+            cell_info.top_text_body = self._get_cell_text_body(top_cell)
+
+    def _get_cell_text_body(self, cell_info: CellInfo) -> str:
+        """
+        获取单元格的纯文本内容
+
+        Args:
+            cell_info: 单元格信息对象
+
+        Returns:
+            单元格的纯文本内容
+        """
+        text_parts: List[str] = []
+        for p_body in cell_info.body:
+            for r_body in p_body.rList:
+                if r_body.body:
+                    text_parts.append(r_body.body)
+        return "".join(text_parts)
+
     def _clean_tc_pr(self, tc_pr: _Element) -> None:
         """
         清理tcPr元素中不需要的标签
@@ -164,6 +198,8 @@ class CellExtractor:
             if val == "restart":
                 self.row_span_map[actual_col_index] = cell_info
             elif val == "continue":
+                # 标记为行合并的继续单元格
+                cell_info.is_merge_continue_cell = True
                 if actual_col_index in self.row_span_map:
                     self.row_span_map[actual_col_index].row_span += 1
         else:
