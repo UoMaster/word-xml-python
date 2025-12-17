@@ -1,7 +1,16 @@
-"""单元格信息数据模型"""
-
 from dataclasses import dataclass, asdict, field
 from typing import Any, Dict, List
+
+
+@dataclass
+class TableInfo:
+    """表格信息"""
+
+    col: int = 0  # 列数
+    row: int = 0  # 行数
+
+    def __repr__(self) -> str:
+        return f"TableInfo(rows={self.row}, cols={self.col})"
 
 
 @dataclass
@@ -52,3 +61,15 @@ class CellInfo:
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典格式"""
         return asdict(self)
+
+
+@dataclass
+class ExtractorResult:
+    """提取结果"""
+
+    table_type: str
+    table_info: TableInfo = field(default_factory=TableInfo)
+    cell_info_list: List[CellInfo] = field(default_factory=list)
+
+    def __repr__(self) -> str:
+        return f"ExtractorResult(table_info={self.table_info}, cell_info_list={self.cell_info_list})"

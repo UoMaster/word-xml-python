@@ -1,13 +1,13 @@
 """数据模型模块"""
 
-from .table import TableInfo
-from .cell import CellInfo, CellPBody, CellRBody
 from .xml_meta import XmlMeta
 from .verifier import VerifierMeta, ErrorInfo
 from .spit import TableSplitResult
+from .extractor import ExtractorResult, TableInfo, CellInfo, CellPBody, CellRBody
 
 __all__ = [
     "TableInfo",
+    "ExtractorResult",
     "CellInfo",
     "CellPBody",
     "CellRBody",
