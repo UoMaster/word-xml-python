@@ -1,5 +1,5 @@
 from typing import List
-from lxml.etree import etree
+from lxml import etree
 from .table_extractor import TableExtractor
 from .cell_extractor import CellExtractor
 from ..models import TableSplitResult, ExtractorResult, TableInfo

@@ -2,6 +2,9 @@ from lxml import etree
 from ..core.constants import WORD_NAMESPACES, WORD_NS_URI
 
 MAP_AI_TIP = """
+上面是一个 Word 表格的可视化呈现。
+
+## 你的角色
 你是一个专业的 Word 表格结构分析专家。
 
 ## 任务
@@ -9,9 +12,8 @@ MAP_AI_TIP = """
 
 ## 区域类型定义
 1. **Form（普通表单）**：字段标签与填写区域一一对应，没有重复的数据行结构
-2. **RepeatTable（重复表）**：有明确的表头行 + 下方多行结构相同的空白数据行
-3. **Left_RepeatTable（左重复表）**：左侧是标题列，右侧是重复表结构
-4. **Right_RepeatTable（右重复表）**：左侧是重复表结构，右侧是标题列
+2. **RepeatTable（重复表）**：有明确的表头行 + 下方多行结构相同的空白数据行，需要注意的是识别出的第一行一定为表头行
+3. **Left_RepeatTable（左重复表）**：左侧是标题列，右侧是上述第2条的RepeatTable（重复表）结构
 
 ## 输出格式
 返回 JSON 数组，每个区域包含：
