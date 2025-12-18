@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class TableSplitResult:
+class TableSplitResult(BaseModel):
     """表格分割结果"""
 
     table_xml: str

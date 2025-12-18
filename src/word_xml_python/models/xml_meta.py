@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class XmlMeta:
+class XmlMeta(BaseModel):
     """XML元数据"""
 
     tag: str

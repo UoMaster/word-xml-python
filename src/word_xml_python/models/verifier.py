@@ -1,22 +1,19 @@
 """验证器相关数据模型"""
 
-from dataclasses import dataclass
-from typing import List
+from pydantic import BaseModel
 
 
-@dataclass
-class VerifierMeta:
+class VerifierMeta(BaseModel):
     """验证器元数据"""
 
     name: str
-    rows: List[int]
+    rows: list[int]
     type: str
     reason: str
     split_after_column: int | None = None
 
 
-@dataclass
-class ErrorInfo:
+class ErrorInfo(BaseModel):
     """错误信息"""
 
     source_meta: str

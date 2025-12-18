@@ -1,9 +1,7 @@
-from dataclasses import dataclass, asdict, field
-from typing import Any, Dict, List
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class TableInfo:
+class TableInfo(BaseModel):
     """表格信息"""
 
     col: int = 0  # 列数
@@ -13,30 +11,27 @@ class TableInfo:
         return f"TableInfo(rows={self.row}, cols={self.col})"
 
 
-@dataclass
-class CellRBody:
+class CellRBody(BaseModel):
     """单元格run内容（文本片段）"""
 
     rStyle: str = ""
     body: str = ""
 
 
-@dataclass
-class CellPBody:
+class CellPBody(BaseModel):
     """单元格段落内容"""
 
-    pStyle: Dict[str, str] = field(default_factory=dict)
-    rList: List[CellRBody] = field(default_factory=list)
+    pStyle: dict[str, str] = Field(default_factory=dict)
+    rList: list[CellRBody] = Field(default_factory=list)
 
 
-@dataclass
-class CellInfo:
+class CellInfo(BaseModel):
     """单元格信息"""
 
     key: str  # 单元格位置标识，格式: "行索引-列索引"
     col_span: int = 1  # 列合并数
     row_span: int = 1  # 行合并数
-    body: List[CellPBody] = field(default_factory=list)
+    body: list[CellPBody] = Field(default_factory=list)
     is_empty_cell: bool = False
     left_cell_key: str | None = None
     top_cell_key: str | None = None
@@ -58,18 +53,13 @@ class CellInfo:
             f"is_merge_continue_cell={self.is_merge_continue_cell}"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        """转换为字典格式"""
-        return asdict(self)
 
-
-@dataclass
-class ExtractorResult:
+class ExtractorResult(BaseModel):
     """提取结果"""
 
     table_type: str
-    table_info: TableInfo = field(default_factory=TableInfo)
-    cell_info_list: List[CellInfo] = field(default_factory=list)
+    table_info: TableInfo = Field(default_factory=TableInfo)
+    cell_info_list: list[CellInfo] = Field(default_factory=list)
 
     def __repr__(self) -> str:
         return f"ExtractorResult(table_info={self.table_info}, cell_info_list={self.cell_info_list})"

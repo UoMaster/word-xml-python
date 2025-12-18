@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-from dataclasses import asdict
 
 import pyperclip
 from word_xml_python.core.core import Core
@@ -56,7 +55,7 @@ def main():
     table_xmls = core.get_xml_tables()
     results = core.start_all_by_tables(table_xmls)
     serializable_results = [
-        [asdict(r) for r in result] if result is not None else None
+        [r.model_dump() for r in result] if result is not None else None
         for result in results
     ]
     pyperclip.copy(
