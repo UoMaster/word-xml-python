@@ -58,6 +58,7 @@ def main():
         [r.model_dump() for r in result] if result is not None else None
         for result in results
     ]
+    print(serializable_results)
     pyperclip.copy(
         json.dumps(
             serializable_results,
