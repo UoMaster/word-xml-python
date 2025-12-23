@@ -21,6 +21,28 @@ class WigetListRequest(BaseModel):
     label_key: str = Field(..., description="标签键", examples=["name_field"])
 
 
+class SetLogRequest(BaseModel):
+    log_type: str = Field(
+        ...,
+        description="日志类型",
+        examples=[
+            "hit",
+            "consistency",
+        ],
+    )
+    label_key: str = Field(..., description="标签键", examples=["name_field"])
+    options: list[str] = Field(
+        ..., description="选项列表", examples=[["option1", "option2"]]
+    )
+    type: str = Field(..., description="类型", examples=["Radio", "Checkbox"])
+
+
+class GetTypeRequest(BaseModel):
+    left_text: str | None = Field(..., description="左文本", examples=["左文本"])
+    top_text: str | None = Field(..., description="上文本", examples=["上文本"])
+    text: str | None = Field(..., description="文本", examples=["文本"])
+
+
 # ==================== 响应 DTO ====================
 
 

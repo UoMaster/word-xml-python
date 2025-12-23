@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends
 
 from ..database.database import Database, get_database
 from ..dto import (
+    GetTypeRequest,
+    SetLogRequest,
     WidgetCreateRequest,
     WidgetResponse,
     WigetListRequest,
@@ -31,5 +33,18 @@ async def create_widget(
 async def get_widget_list(
     request: WigetListRequest, service: WidgetService = Depends(get_widget_service)
 ) -> list[WidgetResponse]:
-    print(request)
     return service.get_widget_list(request)
+
+
+@router.post("/set-log", response_model=bool, summary="设置")
+async def set_log(
+    request: SetLogRequest, service: WidgetService = Depends(get_widget_service)
+) -> bool:
+    return service.set_log(request)
+
+
+@router.post("/get-type", response_model=str, summary="获取类型")
+async def get_type(
+    request: GetTypeRequest, service: WidgetService = Depends(get_widget_service)
+) -> str:
+    return service.get_type(request)
