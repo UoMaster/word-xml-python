@@ -33,21 +33,10 @@ class Database:
             self.conn.close()
 
 
-# ==================== 依赖注入 ====================
-
-# 全局数据库单例
 _db_instance: Database | None = None
 
 
 def get_database() -> Database:
-    """
-    获取数据库单例实例（用于 FastAPI 依赖注入）
-
-    使用方式:
-        @router.get("/")
-        async def handler(db: Database = Depends(get_database)):
-            ...
-    """
     global _db_instance
     if _db_instance is None:
         _db_instance = Database()
@@ -55,7 +44,6 @@ def get_database() -> Database:
 
 
 def close_database() -> None:
-    """关闭数据库连接（应用关闭时调用）"""
     global _db_instance
     if _db_instance is not None:
         _db_instance.close()
