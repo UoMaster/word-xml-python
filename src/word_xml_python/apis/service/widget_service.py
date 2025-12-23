@@ -10,6 +10,7 @@ from ..database.repository import WidgetRepository
 from ..dto import (
     WidgetCreateRequest,
     WidgetResponse,
+    WigetListRequest,
 )
 
 
@@ -25,8 +26,6 @@ class WidgetService:
         """
         self.db = db
         self.repository = WidgetRepository(self.db)
-        # 确保表存在
-        self.repository.create_table_if_not_exists()
 
     def create_widget(self, request: WidgetCreateRequest) -> WidgetResponse:
         """创建 Widget"""
@@ -49,3 +48,9 @@ class WidgetService:
             raise HTTPException(status_code=500, detail="Failed to create widget")
 
         return WidgetResponse(**result)
+
+    def get_widget_list(self, request: WigetListRequest) -> list[WidgetResponse]:
+        print("get_widget_list", request.label_key)
+        return [
+            WidgetResponse(**row) for row in self.repository.find_all(request.label_key)
+        ]

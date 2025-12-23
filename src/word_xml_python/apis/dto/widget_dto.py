@@ -15,6 +15,12 @@ class WidgetCreateRequest(BaseModel):
     )
 
 
+class WigetListRequest(BaseModel):
+    """获取 Widget 列表的请求体"""
+
+    label_key: str = Field(..., description="标签键", examples=["name_field"])
+
+
 # ==================== 响应 DTO ====================
 
 
