@@ -1,7 +1,7 @@
 PYTHON := poetry run python
 EXAMPLES_DIR := examples
 
-.PHONY: api demo extract vl vl_v
+.PHONY: api demo extract vl vl_v dev
 
 api:
 	$(PYTHON) $(EXAMPLES_DIR)/api_server.py
@@ -18,6 +18,9 @@ vl_v:
 
 core:
 	$(PYTHON) $(EXAMPLES_DIR)/core.py $(DOCX)
+
+dev:
+	poetry run uvicorn src.word_xml_python.apis.main:app --reload  --port 8000
 
 f:
 	poetry run ruff format .
